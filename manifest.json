@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "FB Activity Cleaner",
+  "version": "2.0",
+  "description": "Automate deleting or cleaning up your Facebook post activity.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://*.facebook.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.facebook.com/*allactivity*",
+        "https://*.facebook.com/*/allactivity*",
+        "https://*.facebook.com/privacy/activity_log*",
+        "https://*.facebook.com/settings/activity_log*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
