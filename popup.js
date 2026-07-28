@@ -3,9 +3,11 @@ const badge = document.getElementById('status-badge');
 const warningBanner = document.getElementById('page-warning');
 const mainControls = document.getElementById('main-controls');
 const countDeleted = document.getElementById('count-deleted');
+const countTotal = document.getElementById('count-total');
 const countScanned = document.getElementById('count-scanned');
 const delaySlider = document.getElementById('delay-slider');
 const delayVal = document.getElementById('delay-val');
+const actionSelect = document.getElementById('action-select');
 const radioModes = document.getElementsByName('delete-mode');
 const btnStart = document.getElementById('btn-start');
 const btnPause = document.getElementById('btn-pause');
@@ -13,6 +15,7 @@ const btnStop = document.getElementById('btn-stop');
 const logConsole = document.getElementById('log-console');
 const btnClearLog = document.getElementById('btn-clear-log');
 const btnDiagnose = document.getElementById('btn-diagnose');
+const btnResetStats = document.getElementById('btn-reset-stats');
 
 // Local variables
 let currentTabId = null;
@@ -29,9 +32,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   currentTabId = tab.id;
   const url = tab.url || '';
   
-  // Check if URL is Facebook Activity Log page (broader matching)
+  // Check if URL is Facebook Activity Log page (expanded matching)
   const isFbActivity = url.includes('facebook.com') && 
-    (url.includes('allactivity') || url.includes('activity_log') || url.includes('activity_history'));
+    (url.includes('allactivity') || url.includes('activity_log') || url.includes('activity_history') || 
+     url.includes('your_facebook_information') || url.includes('your_activity'));
   
   if (!isFbActivity) {
     showWarning();
@@ -40,6 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   hideWarning();
   await loadSavedSettings();
+  await syncTotalStats();
   queryContentScriptState();
 });
 
@@ -49,6 +54,8 @@ delaySlider.addEventListener('input', (e) => {
   delayVal.textContent = `${val}s`;
   saveSettings();
 });
+
+actionSelect.addEventListener('change', saveSettings);
 
 radioModes.forEach(radio => {
   radio.addEventListener('change', saveSettings);
@@ -77,6 +84,14 @@ btnDiagnose.addEventListener('click', () => {
   sendMessageToContentScript({ action: 'diagnose' });
 });
 
+btnResetStats.addEventListener('click', async () => {
+  if (confirm('ต้องการล้างสถิติยอดลบสะสมทั้งหมด (All-Time Total) หรือไม่?')) {
+    await chrome.storage.local.set({ totalDeletedAllTime: 0 });
+    countTotal.textContent = '0';
+    addLog('🧹 Stats reset to 0', 'system');
+  }
+});
+
 // Helper Functions
 function showWarning() {
   warningBanner.classList.remove('hidden');
@@ -100,7 +115,8 @@ function getSettings() {
   }
   return {
     delay: parseFloat(delaySlider.value) * 1000,
-    mode: selectedMode
+    mode: selectedMode,
+    targetAction: actionSelect.value || 'trash'
   };
 }
 
@@ -116,10 +132,18 @@ async function loadSavedSettings() {
     const settings = res.extensionSettings;
     delaySlider.value = settings.delay / 1000;
     delayVal.textContent = `${(settings.delay / 1000).toFixed(1)}s`;
+    if (settings.targetAction) {
+      actionSelect.value = settings.targetAction;
+    }
     for (const radio of radioModes) {
       radio.checked = (radio.value === settings.mode);
     }
   }
+}
+
+async function syncTotalStats() {
+  const data = await chrome.storage.local.get('totalDeletedAllTime');
+  countTotal.textContent = data.totalDeletedAllTime || 0;
 }
 
 function queryContentScriptState() {
@@ -130,8 +154,11 @@ function queryContentScriptState() {
       return;
     }
     updateUIState(response.state);
-    countDeleted.textContent = response.deletedCount;
-    countScanned.textContent = response.scannedCount;
+    countDeleted.textContent = response.deletedCount || 0;
+    countScanned.textContent = response.scannedCount || 0;
+    if (response.totalDeletedAllTime !== undefined) {
+      countTotal.textContent = response.totalDeletedAllTime;
+    }
     if (response.logs && response.logs.length > 0) {
       logConsole.innerHTML = '';
       response.logs.forEach(l => addLog(l.text, l.type));
@@ -187,8 +214,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === 'state_update') {
     updateUIState(message.state);
-    countDeleted.textContent = message.deletedCount;
-    countScanned.textContent = message.scannedCount;
+    countDeleted.textContent = message.deletedCount || 0;
+    countScanned.textContent = message.scannedCount || 0;
+    if (message.totalDeletedAllTime !== undefined) {
+      countTotal.textContent = message.totalDeletedAllTime;
+    }
   } else if (message.type === 'log') {
     addLog(message.text, message.logType);
   }

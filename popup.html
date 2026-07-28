@@ -45,6 +45,7 @@
             <p><b>One-by-One Mode:</b> ใช้กับหน้าที่มีปุ่มจุดสามจุด (...)</p>
             <p>💡 แนะนำ: ไปที่ <b>โปรไฟล์ → จุดสามจุด → Activity Log → Your Posts</b></p>
             <p>⚠️ ตั้ง Delay 3-5 วินาทีเพื่อป้องกันโดน Facebook บล็อก</p>
+            <p>🚨 <b>กด Alt + S บนหน้า Facebook เพื่อหยุดฉุกเฉินทันที</b></p>
           </div>
         </details>
       </section>
@@ -53,7 +54,12 @@
       <section class="stats-card">
         <div class="stat-item">
           <span class="stat-val" id="count-deleted">0</span>
-          <span class="stat-lbl">Deleted</span>
+          <span class="stat-lbl">Session</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-val" id="count-total">0</span>
+          <span class="stat-lbl">All-Time Total</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
@@ -76,6 +82,17 @@
           <small class="help-text">ยิ่ง Delay สูง ยิ่งปลอดภัยจาก Facebook Rate Limiting</small>
         </div>
 
+        <!-- Target Action Setting -->
+        <div class="control-row">
+          <label for="action-select">Target Action (การกระทำ)</label>
+          <select id="action-select" class="custom-select">
+            <option value="trash" selected>🗑️ Move to Trash / Delete (ย้ายไปถังขยะ / ลบ)</option>
+            <option value="untag">🏷️ Remove Tag (เอาแท็กออก)</option>
+            <option value="hide">🙈 Hide from Profile (ซ่อนจากโปรไฟล์)</option>
+            <option value="unreact">💔 Remove Reaction / Unlike (เลิกแสดงความรู้สึก)</option>
+          </select>
+        </div>
+
         <!-- Mode Selection -->
         <div class="control-row">
           <label>Deletion Mode</label>
@@ -84,14 +101,14 @@
               <input type="radio" name="delete-mode" value="batch" checked>
               <div class="radio-tile">
                 <span class="mode-title">📦 Batch Selection</span>
-                <span class="mode-desc">เลือก Checkbox หลายรายการ แล้วลบพร้อมกัน (เร็วกว่า)</span>
+                <span class="mode-desc">เลือก Checkbox หลายรายการ แล้วทำรายการพร้อมกัน (เร็วกว่า)</span>
               </div>
             </label>
             <label class="radio-label">
               <input type="radio" name="delete-mode" value="individual">
               <div class="radio-tile">
                 <span class="mode-title">☝️ One-by-One</span>
-                <span class="mode-desc">กดเมนูจุดสามจุด แล้วลบทีละรายการ (ละเอียดกว่า)</span>
+                <span class="mode-desc">กดเมนูจุดสามจุด แล้วทำรายการทีละรายการ (ละเอียดกว่า)</span>
               </div>
             </label>
           </div>
@@ -115,7 +132,8 @@
       <section class="console-card">
         <div class="console-header">
           <span>Activity Log</span>
-          <div class="console-actions" style="display: flex; gap: 8px;">
+          <div class="console-actions" style="display: flex; gap: 6px;">
+            <button id="btn-reset-stats" title="Reset all-time deleted counter">Reset Stats</button>
             <button id="btn-diagnose">Diagnose</button>
             <button id="btn-clear-log">Clear</button>
           </div>

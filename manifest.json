@@ -28,9 +28,10 @@
     {
       "matches": [
         "https://*.facebook.com/*allactivity*",
-        "https://*.facebook.com/*/allactivity*",
-        "https://*.facebook.com/privacy/activity_log*",
-        "https://*.facebook.com/settings/activity_log*"
+        "https://*.facebook.com/*activity_log*",
+        "https://*.facebook.com/*activity_history*",
+        "https://*.facebook.com/*your_facebook_information*",
+        "https://*.facebook.com/*your_activity*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
